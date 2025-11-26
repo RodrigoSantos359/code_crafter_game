@@ -63,10 +63,13 @@ export function TutorialsPage({ onBack }: TutorialsPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-background">
       {/* Background decorativo */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+        <div className=" absolute top-0 right-0 w-96 h-96 
+  bg-blue-200 dark:bg-blue-900 
+  rounded-full mix-blend-multiply filter blur-3xl opacity-20
+"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
       </div>
 
@@ -84,8 +87,8 @@ export function TutorialsPage({ onBack }: TutorialsPageProps) {
 
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">📚</div>
-            <h1 className="text-5xl font-bold text-slate-800 mb-2">Tutoriais</h1>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            <h1 className="text-5xl font-bold text-slate-100 mb-2">Tutoriais</h1>
+            <p className="text-xl text-slate-200 max-w-2xl mx-auto">
               Aprenda os conceitos fundamentais de programação de forma prática e divertida
             </p>
           </div>
@@ -99,15 +102,15 @@ export function TutorialsPage({ onBack }: TutorialsPageProps) {
                 {/* Ícone e Título */}
                 <div className="flex-shrink-0">
                   <div className="text-6xl mb-4 text-center md:text-left">{tutorial.icon}</div>
-                  <h2 className="text-2xl font-bold text-slate-800 mb-2">{tutorial.title}</h2>
-                  <p className="text-slate-600 mb-4">{tutorial.description}</p>
+                  <h2 className="text-2xl font-bold text-slate-100 mb-2">{tutorial.title}</h2>
+                  <p className="text-slate-200 mb-4">{tutorial.description}</p>
                 </div>
 
                 {/* Conteúdo */}
                 <div className="flex-1 space-y-4">
                   <div className="space-y-2">
                     {tutorial.content.map((paragraph, pIndex) => (
-                      <p key={pIndex} className="text-slate-700 leading-relaxed">
+                      <p key={pIndex} className="text-slate-200 leading-relaxed">
                         {paragraph}
                       </p>
                     ))}
@@ -115,7 +118,7 @@ export function TutorialsPage({ onBack }: TutorialsPageProps) {
 
                   {/* Exemplo de Código */}
                   <div className="mt-4">
-                    <h3 className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
                       <Code className="w-4 h-4" />
                       Exemplo:
                     </h3>

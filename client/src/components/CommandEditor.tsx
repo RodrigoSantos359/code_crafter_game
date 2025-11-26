@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Command, CommandType } from '@/types/game';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { X, Plus, HelpCircle } from 'lucide-react';
+import { X, Plus, HelpCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -46,9 +46,162 @@ const COMMAND_DEFINITIONS: Record<CommandType, { label: string; description: str
   },
 };
 
-export function CommandEditor({ allowedCommands, commands, onCommandsChange }: CommandEditorProps) {
-  const [selectedCommand, setSelectedCommand] = useState<CommandType | null>(null);
+interface CommandItemProps {
+  command: Command;
+  index: number;
+  allowedCommands: CommandType[];
+  onUpdate: (id: string, updates: Partial<Command>) => void;
+  onRemove: (id: string) => void;
+  onAddChild: (parentId: string, type: CommandType) => void;
+  level?: number;
+}
 
+function CommandItem({
+  command,
+  index,
+  allowedCommands,
+  onUpdate,
+  onRemove,
+  onAddChild,
+  level = 0,
+}: CommandItemProps) {
+  const [expanded, setExpanded] = useState(true);
+  const hasChildren = (command.type === 'if' || command.type === 'loop') && command.children;
+
+  return (
+    <div style={{ marginLeft: `${level * 20}px` }} className="space-y-1">
+      <div className="flex items-center gap-2 p-3 bg-white border-l-4 border-blue-500 rounded shadow-sm hover:shadow-md transition-shadow">
+        {hasChildren && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="p-1 hover:bg-slate-100 rounded"
+          >
+            {expanded ? (
+              <ChevronDown className="w-4 h-4" />
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
+          </button>
+        )}
+        {!hasChildren && <div className="w-6" />}
+
+        <span className="text-lg">{COMMAND_DEFINITIONS[command.type].icon}</span>
+        <div className="flex-1">
+          <p className="text-sm font-medium text-slate-700">
+            {index + 1}. {COMMAND_DEFINITIONS[command.type].label}
+          </p>
+          {command.params?.times && (
+            <p className="text-xs text-slate-500">
+              Repetir {command.params.times} vezes
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-1">
+          {command.type === 'loop' && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const times = command.params?.times || 1;
+                  onUpdate(command.id, {
+                    params: { times: Math.max(1, times - 1) },
+                  });
+                }}
+              >
+                −
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const times = command.params?.times || 1;
+                  onUpdate(command.id, {
+                    params: { times: Math.min(10, times + 1) },
+                  });
+                }}
+              >
+                +
+              </Button>
+            </>
+          )}
+
+          {(command.type === 'if' || command.type === 'loop') && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-blue-600">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Adicionar comando a {COMMAND_DEFINITIONS[command.type].label}</DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-2 gap-2">
+                  {allowedCommands
+                    .filter(cmd => cmd !== 'if' && cmd !== 'loop' && cmd !== 'function')
+                    .map(cmdType => (
+                      <Button
+                        key={cmdType}
+                        variant="outline"
+                        onClick={() => {
+                          onAddChild(command.id, cmdType);
+                        }}
+                        className="justify-start"
+                      >
+                        <span className="mr-2">{COMMAND_DEFINITIONS[cmdType].icon}</span>
+                        {COMMAND_DEFINITIONS[cmdType].label}
+                      </Button>
+                    ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onRemove(command.id)}
+            className="text-red-500 hover:text-red-700"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Comandos filhos */}
+      {expanded && hasChildren && command.children && command.children.length > 0 && (
+        <div className="space-y-1 border-l-2 border-blue-300 pl-2">
+          {command.children.map((child, childIdx) => (
+            <CommandItem
+              key={child.id}
+              command={child}
+              index={childIdx}
+              allowedCommands={allowedCommands}
+              onUpdate={onUpdate}
+              onRemove={(id) => {
+                onUpdate(command.id, {
+                  children: command.children?.filter(c => c.id !== id),
+                });
+              }}
+              onAddChild={onAddChild}
+              level={level + 1}
+            />
+          ))}
+        </div>
+      )}
+
+      {expanded && hasChildren && (!command.children || command.children.length === 0) && (
+        <div className="text-xs text-slate-400 italic pl-8 py-2">
+          Nenhum comando. Clique em + para adicionar.
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function CommandEditor({ allowedCommands, commands, onCommandsChange }: CommandEditorProps) {
   const addCommand = (type: CommandType) => {
     const newCommand: Command = {
       id: `cmd-${Date.now()}-${Math.random()}`,
@@ -65,9 +218,41 @@ export function CommandEditor({ allowedCommands, commands, onCommandsChange }: C
   };
 
   const updateCommand = (id: string, updates: Partial<Command>) => {
-    onCommandsChange(
-      commands.map(cmd => (cmd.id === id ? { ...cmd, ...updates } : cmd))
-    );
+    const updateRecursive = (cmds: Command[]): Command[] => {
+      return cmds.map(cmd => {
+        if (cmd.id === id) {
+          return { ...cmd, ...updates };
+        }
+        if (cmd.children) {
+          return { ...cmd, children: updateRecursive(cmd.children) };
+        }
+        return cmd;
+      });
+    };
+    onCommandsChange(updateRecursive(commands));
+  };
+
+  const addChildCommand = (parentId: string, type: CommandType) => {
+    const newChild: Command = {
+      id: `cmd-${Date.now()}-${Math.random()}`,
+      type,
+      label: COMMAND_DEFINITIONS[type].label,
+      params: type === 'turn' ? { direction: 'right' } : {},
+    };
+
+    const addToParent = (cmds: Command[]): Command[] => {
+      return cmds.map(cmd => {
+        if (cmd.id === parentId && cmd.children) {
+          return { ...cmd, children: [...cmd.children, newChild] };
+        }
+        if (cmd.children) {
+          return { ...cmd, children: addToParent(cmd.children) };
+        }
+        return cmd;
+      });
+    };
+
+    onCommandsChange(addToParent(commands));
   };
 
   return (
@@ -117,60 +302,15 @@ export function CommandEditor({ allowedCommands, commands, onCommandsChange }: C
         ) : (
           <div className="space-y-2">
             {commands.map((cmd, idx) => (
-              <div
+              <CommandItem
                 key={cmd.id}
-                className="flex items-center gap-2 p-3 bg-white border-l-4 border-blue-500 rounded shadow-sm hover:shadow-md transition-shadow"
-              >
-                <span className="text-lg">{COMMAND_DEFINITIONS[cmd.type].icon}</span>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-700">
-                    {idx + 1}. {COMMAND_DEFINITIONS[cmd.type].label}
-                  </p>
-                  {cmd.params?.times && (
-                    <p className="text-xs text-slate-500">
-                      Repetir {cmd.params.times} vezes
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-1">
-                  {cmd.type === 'loop' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const times = cmd.params?.times || 1;
-                        updateCommand(cmd.id, {
-                          params: { times: Math.max(1, times - 1) },
-                        });
-                      }}
-                    >
-                      −
-                    </Button>
-                  )}
-                  {cmd.type === 'loop' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const times = cmd.params?.times || 1;
-                        updateCommand(cmd.id, {
-                          params: { times: Math.min(10, times + 1) },
-                        });
-                      }}
-                    >
-                      +
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeCommand(cmd.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+                command={cmd}
+                index={idx}
+                allowedCommands={allowedCommands}
+                onUpdate={updateCommand}
+                onRemove={removeCommand}
+                onAddChild={addChildCommand}
+              />
             ))}
           </div>
         )}

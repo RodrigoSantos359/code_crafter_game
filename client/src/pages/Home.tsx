@@ -23,19 +23,19 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Background decorativo */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200/40 dark:bg-blue-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200/40 dark:bg-purple-900/30 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
       </div>
 
       <div className="relative min-h-screen flex flex-col items-center justify-center p-6">
         {/* Logo e Título */}
         <div className="text-center mb-12">
           <div className="text-6xl mb-4">🤖</div>
-          <h1 className="text-5xl font-bold text-slate-800 mb-2">{APP_TITLE}</h1>
-          <p className="text-xl text-slate-600 max-w-md">
+          <h1 className="text-5xl font-bold text-foreground mb-2">{APP_TITLE}</h1>
+          <p className="text-xl text-muted-foreground max-w-md mx-auto">
             Uma aventura de quebra-cabeças onde você programa um robô para superar obstáculos
           </p>
         </div>
@@ -46,8 +46,8 @@ export default function Home() {
           <Card className="p-8 text-center hover:shadow-xl transition-all cursor-pointer hover:scale-105"
             onClick={() => setCurrentPage('game')}>
             <div className="text-5xl mb-4">🎮</div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Jogar</h2>
-            <p className="text-slate-600 mb-6">Comece sua jornada e aprenda programação de forma divertida</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Jogar</h2>
+            <p className="text-muted-foreground mb-6">Comece sua jornada e aprenda programação de forma divertida</p>
             <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700">
               <Play className="w-4 h-4" />
               Começar
@@ -58,8 +58,8 @@ export default function Home() {
           <Card className="p-8 text-center hover:shadow-xl transition-all cursor-pointer hover:scale-105"
             onClick={() => setCurrentPage('tutorials')}>
             <div className="text-5xl mb-4">📚</div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Tutoriais</h2>
-            <p className="text-slate-600 mb-6">Aprenda os conceitos básicos de programação</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Tutoriais</h2>
+            <p className="text-muted-foreground mb-6">Aprenda os conceitos básicos de programação</p>
             <Button variant="outline" className="w-full gap-2">
               <BookOpen className="w-4 h-4" />
               Ver Tutoriais
@@ -70,8 +70,8 @@ export default function Home() {
           <Card className="p-8 text-center hover:shadow-xl transition-all cursor-pointer hover:scale-105"
             onClick={() => setCurrentPage('settings')}>
             <div className="text-5xl mb-4">⚙️</div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Configurações</h2>
-            <p className="text-slate-600 mb-6">Ajuste o som, dificuldade e preferências</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Configurações</h2>
+            <p className="text-muted-foreground mb-6">Ajuste o som, dificuldade e preferências</p>
             <Button variant="outline" className="w-full gap-2">
               <Settings className="w-4 h-4" />
               Configurar
@@ -81,7 +81,7 @@ export default function Home() {
 
         {/* Informações sobre o jogo */}
         <div className="mt-16 max-w-2xl text-center">
-          <h3 className="text-2xl font-bold text-slate-800 mb-4">O que você vai aprender</h3>
+          <h3 className="text-2xl font-bold text-foreground mb-4">O que você vai aprender</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { icon: '📝', label: 'Sequência' },
@@ -91,7 +91,7 @@ export default function Home() {
             ].map(item => (
               <div key={item.label} className="text-center">
                 <div className="text-3xl mb-2">{item.icon}</div>
-                <p className="text-sm font-semibold text-slate-700">{item.label}</p>
+                <p className="text-sm font-semibold text-muted-foreground">{item.label}</p>
               </div>
             ))}
           </div>

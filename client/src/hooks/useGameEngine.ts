@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Command, Direction, Level, RobotState, ExecutionResult } from '@/types/game';
 
 const DIRECTIONS: Direction[] = ['right', 'down', 'left', 'up'];
@@ -15,6 +15,19 @@ export function useGameEngine(level: Level) {
 
   const [executionLog, setExecutionLog] = useState<string[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
+
+  // Resetar robô quando o nível mudar
+  useEffect(() => {
+    setRobotState({
+      x: level.startX,
+      y: level.startY,
+      direction: level.startDirection,
+      isMoving: false,
+      hasCollided: false,
+      reachedGoal: false,
+    });
+    setExecutionLog([]);
+  }, [level.id]);
 
   // Verificar se uma posição é válida no mapa
   const isValidPosition = useCallback((x: number, y: number): boolean => {
@@ -65,14 +78,17 @@ export function useGameEngine(level: Level) {
         }
 
         case 'if': {
-          // Condição simples: verificar se há obstáculo à frente
+          // Verificar se há obstáculo à frente
           const [dx, dy] = getDirectionVector(state.direction);
           const nextX = state.x + dx;
           const nextY = state.y + dy;
           const hasObstacle = !isValidPosition(nextX, nextY);
 
+          setExecutionLog(prev => [...prev, `Verificação: Obstáculo à frente? ${hasObstacle ? 'Sim' : 'Não'}`]);
+
           if (hasObstacle && command.children && command.children.length > 0) {
-            // Executar bloco "então"
+            // Executar bloco "então" (todos os comandos filhos)
+            setExecutionLog(prev => [...prev, 'Executando bloco ENTÃO...']);
             for (const child of command.children) {
               const result = await executeCommand(child, newState);
               if (result.error) return result;
@@ -84,8 +100,11 @@ export function useGameEngine(level: Level) {
 
         case 'loop': {
           const times = command.params?.times || 1;
+          setExecutionLog(prev => [...prev, `Iniciando loop: ${times} vezes`]);
+
           for (let i = 0; i < times; i++) {
-            if (command.children) {
+            if (command.children && command.children.length > 0) {
+              setExecutionLog(prev => [...prev, `Iteração ${i + 1}/${times}`]);
               for (const child of command.children) {
                 const result = await executeCommand(child, newState);
                 if (result.error) return result;
@@ -100,7 +119,6 @@ export function useGameEngine(level: Level) {
           break;
       }
 
-      // Adicionar pequeno delay para visualização
       await new Promise(resolve => setTimeout(resolve, 300));
 
       return { state: newState };
@@ -132,7 +150,6 @@ export function useGameEngine(level: Level) {
           stepCount++;
         }
 
-        // Verificar se alcançou o objetivo
         if (currentState.x === level.goalX && currentState.y === level.goalY) {
           setRobotState({ ...currentState, reachedGoal: true });
           return {
@@ -162,7 +179,6 @@ export function useGameEngine(level: Level) {
     [robotState, level, executeCommand]
   );
 
-  // Resetar o robô para a posição inicial
   const reset = useCallback(() => {
     setRobotState({
       x: level.startX,
@@ -184,7 +200,6 @@ export function useGameEngine(level: Level) {
   };
 }
 
-// Função auxiliar para obter o vetor de direção
 function getDirectionVector(direction: Direction): [number, number] {
   const vectors: Record<Direction, [number, number]> = {
     right: [1, 0],

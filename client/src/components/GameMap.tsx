@@ -91,25 +91,102 @@ export function GameMap({ level, robotState }: GameMapProps) {
           </g>
         ))}
 
-        {/* Renderizar robô */}
+        {/* Renderizar robô com design detalhado */}
         <g
           transform={`translate(${robotState.x * cellSize + cellSize / 2}, ${robotState.y * cellSize + cellSize / 2}) rotate(${getRobotRotation(robotState.direction)})`}
         >
-          {/* Corpo do robô */}
+          {/* Corpo principal do robô - cilindro */}
           <rect
             x="-12"
-            y="-12"
+            y="-14"
             width="24"
-            height="24"
+            height="28"
             fill="#3b82f6"
-            rx="4"
+            rx="6"
+            ry="6"
           />
-          {/* Olho do robô */}
-          <circle cx="6" cy="-4" r="3" fill="#ffffff" />
-          {/* Seta de direção */}
+
+          {/* Topo do robô - antena */}
+          <rect
+            x="-2"
+            y="-18"
+            width="4"
+            height="6"
+            fill="#1e40af"
+            rx="2"
+          />
+
+          {/* Bola da antena */}
+          <circle cx="0" cy="-20" r="2.5" fill="#1e40af" />
+
+          {/* Olhos do robô */}
+          <circle cx="-5" cy="-8" r="2" fill="#ffffff" />
+          <circle cx="5" cy="-8" r="2" fill="#ffffff" />
+
+          {/* Pupilas dos olhos — movem conforme direção */}
+          <circle
+            cx={-5 + (robotState.direction === "right" ? 1.5 : robotState.direction === "left" ? -1.5 : 0)}
+            cy={-8 + (robotState.direction === "down" ? 1.5 : robotState.direction === "up" ? -1.5 : 0)}
+            r="1"
+            fill="#000000"
+          />
+          <circle
+            cx={5 + (robotState.direction === "right" ? 1.5 : robotState.direction === "left" ? -1.5 : 0)}
+            cy={-8 + (robotState.direction === "down" ? 1.5 : robotState.direction === "up" ? -1.5 : 0)}
+            r="1"
+            fill="#000000"
+          />
+
+          {/* Boca do robô */}
+          <line x1="-6" y1="0" x2="6" y2="0" stroke="#ffffff" strokeWidth="1.5" />
+
+          {/* Painel frontal */}
+          <rect
+            x="-10"
+            y="-4"
+            width="20"
+            height="12"
+            fill="#2563eb"
+            rx="2"
+          />
+
+          {/* Botões do painel */}
+          <circle cx="-5" cy="-1" r="1.5" fill="#fbbf24" />
+          <circle cx="0" cy="-1" r="1.5" fill="#ef4444" />
+          <circle cx="5" cy="-1" r="1.5" fill="#10b981" />
+
+          {/* Seta frontal grande indicando direção */}
           <polygon
-            points="0,-12 4,-6 -4,-6"
-            fill="#60a5fa"
+            points="0,-16 -4,-8 4,-8"
+            fill="#fbbf24"
+            opacity="0.9"
+          />
+
+          {/* Rodas do robô */}
+          <circle cx="-10" cy="12" r="3" fill="#1e40af" />
+          <circle cx="10" cy="12" r="3" fill="#1e40af" />
+
+          {/* Borda do robô para melhor visibilidade */}
+          <rect
+            x="-12"
+            y="-14"
+            width="24"
+            height="28"
+            fill="none"
+            stroke="#1e40af"
+            strokeWidth="1.5"
+            rx="6"
+            ry="6"
+          />
+
+          {/* dicionar uma sombra atrás do robô que muda conforme a direção */}
+          <ellipse
+            cx="0"
+            cy="18"
+            rx={robotState.direction === "right" ? 10 : robotState.direction === "left" ? 8 : 10}
+            ry={robotState.direction === "down" ? 3 : robotState.direction === "up" ? 8 : 3}
+            fill="#000"
+            opacity="0.2"
           />
         </g>
       </svg>

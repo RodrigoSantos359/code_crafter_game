@@ -12,12 +12,14 @@
 - [x] Área de visualização do mapa/cenário
 - [x] Painel de feedback e mensagens
 - [x] Sistema de ajuda contextual (botão ?)
+- [x] Colocar música de fundo
+- [x] Colocar efeitos sonoros
 
 ## Mecânicas do Jogo
 - [x] Bloco Sequência (Andar, Virar)
 - [x] Bloco Condicionais (Se/Então/Senão)
 - [x] Bloco Laços (Repetir X vezes)
-- [ ] Bloco Funções/Blocos personalizados
+- [X] Bloco Funções/Blocos personalizados
 - [x] Motor de execução de comandos
 - [x] Sistema de detecção de colisões e obstáculos
 
@@ -42,3 +44,6 @@
 - [x] Testar interpretação de comandos
 - [x] Testar responsividade da interface
 - [x] Validar feedback visual e mensagens
+- [x] Validar ajuste do som
+- [ ] Validar preferências de aparência e animações
+- [ ] Validar Dificuldade do jogo

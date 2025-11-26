@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LEVELS } from '@/data/levels';
 import { Level } from '@/types/game';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useSound } from '@/hooks/useSound';
+import { useAudioSettings } from '@/contexts/AudioContext';
 
 interface GamePageProps {
   onBack: () => void;
@@ -29,16 +31,35 @@ export function GamePage({ onBack }: GamePageProps) {
   const [showLevelSelect, setShowLevelSelect] = useState(true);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
+  const { musicEnabled } = useAudioSettings();
+  const bgMusic = useSound("/sounds/bg-music.mp3", { loop: true, type: "music" });
+  const playExecute = useSound("/sounds/execute.wav", { type: "sfx" });
+  const playSuccess = useSound("/sounds/success.wav", { type: "sfx" });
+  const playError = useSound("/sounds/error.wav", { type: "sfx" });
+
   const currentLevel = LEVELS.find(l => l.id === currentLevelId);
   const { robotState, executionLog, isExecuting, executeCommands, reset } = useGameEngine(
     currentLevel || LEVELS[0]
   );
+
+  // Música de fundo: inicia ao entrar na página de jogo e pausa ao sair
+  useEffect(() => {
+    if (musicEnabled) {
+      bgMusic.play();
+    } else {
+      bgMusic.stop();
+    }
+    return () => {
+      bgMusic.stop();
+    };
+  }, [musicEnabled, bgMusic]);
 
   const handleLevelSelect = (levelId: string) => {
     setCurrentLevelId(levelId);
     setShowLevelSelect(false);
     setCommands([]);
     setExecutionResult(null);
+    // Reset será feito automaticamente pelo useGameEngine quando o nível mudar
   };
 
   const handleExecute = async () => {
@@ -50,11 +71,15 @@ export function GamePage({ onBack }: GamePageProps) {
       return;
     }
 
+    playExecute.play();
     const result = await executeCommands(commands);
     setExecutionResult(result);
 
     if (result.success) {
+      playSuccess.play();
       setShowSuccessDialog(true);
+    } else {
+      playError.play();
     }
   };
 
@@ -67,22 +92,36 @@ export function GamePage({ onBack }: GamePageProps) {
   const handleNextLevel = () => {
     const currentIndex = LEVELS.findIndex(l => l.id === currentLevelId);
     if (currentIndex < LEVELS.length - 1) {
-      handleLevelSelect(LEVELS[currentIndex + 1].id);
+      setShowSuccessDialog(false);
+      // Pequeno delay para garantir que o diálogo feche antes de trocar o nível
+      setTimeout(() => {
+        handleLevelSelect(LEVELS[currentIndex + 1].id);
+      }, 100);
     } else {
       setShowLevelSelect(true);
+      setShowSuccessDialog(false);
     }
-    setShowSuccessDialog(false);
   };
 
   if (showLevelSelect) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="min-h-screen bg-background text-foreground dark:text-slate-100 p-6">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none p-6">
+          <div className=" absolute top-0 right-0 w-96 h-96 
+  bg-blue-200 dark:bg-blue-900 
+  rounded-full mix-blend-multiply filter blur-3xl opacity-20
+"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 
+  bg-purple-200 dark:bg-purple-900 
+  rounded-full mix-blend-multiply filter blur-3xl opacity-20
+"></div>
+        </div>
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-4xl font-bold text-slate-800">
+            <h1 className="text-4xl font-bold text-foreground dark:text-slate-100">
               🤖 Code Crafter: A Jornada do Algoritmo
             </h1>
-            <Button variant="outline" onClick={onBack} className="gap-2">
+            <Button variant="outline" onClick={onBack} className="gap-2 dark:text-slate-100">
               <ChevronLeft className="w-4 h-4" />
               Voltar
             </Button>
@@ -92,18 +131,18 @@ export function GamePage({ onBack }: GamePageProps) {
             {LEVELS.map(level => (
               <Card
                 key={level.id}
-                className="p-6 hover:shadow-lg transition-shadow cursor-pointer hover:border-blue-400"
+                className="p-6 hover:shadow-lg transition-shadow cursor-pointer hover:border-blue-400 dark:hover:border-blue-600"
                 onClick={() => handleLevelSelect(level.id)}
               >
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-slate-800">{level.name}</h3>
+                  <h3 className="text-lg font-semibold text-slate-100 dark:text-slate-100">{level.name}</h3>
                   <span
                     className={`text-xs font-semibold px-2 py-1 rounded ${
                       level.difficulty === 'easy'
-                        ? 'bg-green-100 text-green-700'
+                        ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-100'
                         : level.difficulty === 'medium'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-red-100 text-red-700'
+                          ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-100'
+                          : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100'
                     }`}
                   >
                     {level.difficulty === 'easy'
@@ -113,12 +152,12 @@ export function GamePage({ onBack }: GamePageProps) {
                         : 'Difícil'}
                   </span>
                 </div>
-                <p className="text-sm text-slate-600 mb-4">{level.description}</p>
+                <p className="text-sm text-muted-foreground dark:text-slate-200 mb-4">{level.description}</p>
                 <div className="flex flex-wrap gap-1">
                   {level.allowedCommands.map(cmd => (
                     <span
                       key={cmd}
-                      className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded"
+                      className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-100 px-2 py-1 rounded"
                     >
                       {cmd}
                     </span>
@@ -133,46 +172,56 @@ export function GamePage({ onBack }: GamePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background text-foreground dark:text-slate-100 p-6">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none p-6">
+        <div className=" absolute top-0 right-0 w-96 h-96 
+  bg-blue-200 dark:bg-blue-900 
+  rounded-full mix-blend-multiply filter blur-3xl opacity-20
+"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 
+  bg-purple-200 dark:bg-purple-900 
+  rounded-full mix-blend-multiply filter blur-3xl opacity-20
+"></div>
+      </div>
+      <div className="relative min-h-screen">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between mb-6">
           <div>
             <Button
               variant="outline"
               onClick={() => setShowLevelSelect(true)}
-              className="gap-2 mb-2"
+              className="gap-2 mb-2 dark:text-slate-100"
             >
               <ChevronLeft className="w-4 h-4" />
               Voltar aos Níveis
             </Button>
-            <h1 className="text-3xl font-bold text-slate-800">{currentLevel?.name}</h1>
-            <p className="text-slate-600 mt-1">{currentLevel?.description}</p>
+            <h1 className="text-3xl font-bold text-foreground dark:text-slate-100">{currentLevel?.name}</h1>
+            <p className="text-muted-foreground dark:text-slate-200 mt-1">{currentLevel?.description}</p>
           </div>
         </div>
 
         {/* Tutorial */}
         {currentLevel?.tutorial && (
-          <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
-            <p className="text-sm text-blue-900">
+          <Card className="max-w-7xl mx-auto p-4 mb-6 bg-blue-50/70 dark:bg-blue-950/40 border-blue-200/60 dark:border-blue-600/60">
+            <p className="text-sm text-blue-900 dark:text-blue-100 dark:text-slate-200">
               <span className="font-semibold">💡 Dica:</span> {currentLevel.tutorial}
             </p>
           </Card>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Coluna esquerda: Mapa */}
           <div className="lg:col-span-1">
-            <Card className="p-4">
-              <h2 className="text-lg font-semibold text-slate-800 mb-4">Mapa</h2>
+            <Card className="max-w-7xl mx-auto p-4 dark:bg-slate-900/50 dark:border-slate-600/50">
+              <h2 className="text-lg font-semibold text-slate-100 dark:text-slate-200 mb-4">Mapa</h2>
               {currentLevel && <GameMap level={currentLevel} robotState={robotState} />}
             </Card>
           </div>
 
           {/* Coluna direita: Editor e Controles */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="max-w-7xl mx-auto lg:col-span-2 space-y-4">
             {/* Editor de Comandos */}
-            <Card className="p-4">
+            <Card className="max-w-7xl mx-auto p-4 dark:bg-slate-900/50 dark:border-slate-600/50">
               <CommandEditor
                 allowedCommands={currentLevel?.allowedCommands || []}
                 commands={commands}
@@ -185,28 +234,28 @@ export function GamePage({ onBack }: GamePageProps) {
               <Card
                 className={`p-4 ${
                   executionResult.success
-                    ? 'bg-green-50 border-green-200'
-                    : 'bg-red-50 border-red-200'
+                    ? 'bg-green-50 border-green-200 dark:bg-green-900/40 dark:border-green-600/40'
+                    : 'bg-red-50 border-red-200 dark:bg-red-900/40 dark:border-red-600/40'
                 }`}
               >
                 <p
                   className={`text-sm font-semibold ${
-                    executionResult.success ? 'text-green-700' : 'text-red-700'
+                    executionResult.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
                   }`}
                 >
                   {executionResult.message}
                 </p>
                 {executionResult.error && (
-                  <p className="text-xs text-red-600 mt-2">{executionResult.error}</p>
+                  <p className="text-xs text-red-600 dark:text-red-100 mt-2">{executionResult.error}</p>
                 )}
               </Card>
             )}
 
             {/* Log de Execução */}
             {executionLog.length > 0 && (
-              <Card className="p-4">
-                <h3 className="text-sm font-semibold text-slate-800 mb-2">Log de Execução</h3>
-                <div className="bg-slate-900 text-green-400 p-3 rounded font-mono text-xs space-y-1 max-h-32 overflow-y-auto">
+              <Card className="p-4 dark:bg-slate-900/50 dark:border-slate-600/50">
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">Log de Execução</h3>
+                <div className="bg-slate-900 dark:bg-slate-900/50 text-green-400 dark:text-green-100 p-3 rounded font-mono text-xs space-y-1 max-h-32 overflow-y-auto">
                   {executionLog.map((log, idx) => (
                     <div key={idx}>
                       &gt; {log}
@@ -217,19 +266,19 @@ export function GamePage({ onBack }: GamePageProps) {
             )}
 
             {/* Botões de Ação */}
-            <div className="flex gap-2">
+            <div className="max-w-7xl mx-auto flex gap-2 dark:text-slate-100">
               <Button
                 onClick={handleExecute}
                 disabled={isExecuting || commands.length === 0}
-                className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
+                className="flex-1 gap-2 bg-green-600 hover:bg-green-700 dark:bg-green-600/90 dark:hover:bg-green-700/90 dark:text-slate-100"
               >
                 <Play className="w-4 h-4" />
-                {isExecuting ? 'Executando...' : 'Executar'}
+                <p className="text-sm text-slate-100 dark:text-slate-200">{isExecuting ? 'Executando...' : 'Executar'}</p>
               </Button>
               <Button
                 onClick={handleReset}
                 variant="outline"
-                className="gap-2"
+                className="gap-2 dark:text-slate-100 dark:hover:bg-slate-600/90 dark:hover:text-slate-100"
               >
                 <RotateCcw className="w-4 h-4" />
                 Resetar
@@ -241,18 +290,18 @@ export function GamePage({ onBack }: GamePageProps) {
 
       {/* Diálogo de Sucesso */}
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-7xl mx-auto dark:bg-slate-900/50 dark:border-slate-600/50">
           <AlertDialogHeader>
-            <AlertDialogTitle>🎉 Parabéns!</AlertDialogTitle>
+            <AlertDialogTitle className="dark:text-slate-100">🎉 Parabéns!</AlertDialogTitle>
           </AlertDialogHeader>
-          <AlertDialogDescription>
-            {executionResult?.message}
+          <AlertDialogDescription className="dark:text-slate-200">
+            <p className="text-sm text-slate-100 dark:text-slate-200">{executionResult?.message}</p>
           </AlertDialogDescription>
-          <div className="flex gap-2">
-            <AlertDialogCancel onClick={() => setShowSuccessDialog(false)}>
+          <div className="max-w-7xl mx-auto flex gap-2 dark:text-slate-100">
+            <AlertDialogCancel onClick={() => setShowSuccessDialog(false)} className="dark:text-slate-100 dark:hover:bg-slate-600/90 dark:hover:text-slate-100">
               Tentar Novamente
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleNextLevel}>
+            <AlertDialogAction onClick={handleNextLevel} className="dark:text-slate-100 dark:hover:bg-slate-600/90 dark:hover:text-slate-100">
               Próximo Nível
             </AlertDialogAction>
           </div>
