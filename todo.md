@@ -45,5 +45,5 @@
 - [x] Testar responsividade da interface
 - [x] Validar feedback visual e mensagens
 - [x] Validar ajuste do som
-- [ ] Validar preferências de aparência e animações
+- [X] Validar preferências de aparência e animações
 - [ ] Validar Dificuldade do jogo

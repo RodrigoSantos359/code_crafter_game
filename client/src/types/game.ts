@@ -69,3 +69,9 @@ export interface PlayerProgress {
   totalSteps: number;
   bestSteps: Record<string, number>; // levelId -> minSteps
 }
+
+export interface FunctionDefinition {
+  id: string;
+  name: string;
+  commands: Command[];
+}

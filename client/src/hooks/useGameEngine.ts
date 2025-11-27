@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Command, Direction, Level, RobotState, ExecutionResult } from '@/types/game';
+import { Command, Direction, Level, RobotState, ExecutionResult, FunctionDefinition } from '@/types/game';
 
 const DIRECTIONS: Direction[] = ['right', 'down', 'left', 'up'];
 
-export function useGameEngine(level: Level) {
+export function useGameEngine(level: Level, functionDefinitions: FunctionDefinition[] = []) {
   const [robotState, setRobotState] = useState<RobotState>({
     x: level.startX,
     y: level.startY,
@@ -115,6 +115,27 @@ export function useGameEngine(level: Level) {
           break;
         }
 
+        case 'function': {
+          const functionId = command.params?.functionId;
+          const fnDef = functionDefinitions.find(fn => fn.id === functionId);
+
+          if (!functionId || !fnDef) {
+            return {
+              state,
+              error: 'Função não encontrada. Verifique se ela ainda existe.',
+            };
+          }
+
+          setExecutionLog(prev => [...prev, `Executando função ${fnDef.name}`]);
+
+          for (const child of fnDef.commands) {
+            const result = await executeCommand(child, newState);
+            if (result.error) return result;
+            newState = result.state;
+          }
+          break;
+        }
+
         default:
           break;
       }
@@ -123,7 +144,7 @@ export function useGameEngine(level: Level) {
 
       return { state: newState };
     },
-    [isValidPosition]
+    [isValidPosition, functionDefinitions]
   );
 
   // Executar sequência de comandos

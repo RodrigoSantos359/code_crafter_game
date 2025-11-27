@@ -47,7 +47,7 @@ export default function Home() {
             onClick={() => setCurrentPage('game')}>
             <div className="text-5xl mb-4">🎮</div>
             <h2 className="text-2xl font-bold text-foreground mb-2">Jogar</h2>
-            <p className="text-muted-foreground mb-6">Comece sua jornada e aprenda programação de forma divertida</p>
+            <p className="text-muted-foreground mb-1 text-sm">Comece sua jornada e aprenda programação de forma divertida</p>
             <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700">
               <Play className="w-4 h-4" />
               Começar
@@ -59,7 +59,7 @@ export default function Home() {
             onClick={() => setCurrentPage('tutorials')}>
             <div className="text-5xl mb-4">📚</div>
             <h2 className="text-2xl font-bold text-foreground mb-2">Tutoriais</h2>
-            <p className="text-muted-foreground mb-6">Aprenda os conceitos básicos de programação</p>
+            <p className="text-muted-foreground mb-1 text-sm">Aprenda os conceitos básicos de programação</p>
             <Button variant="outline" className="w-full gap-2">
               <BookOpen className="w-4 h-4" />
               Ver Tutoriais
@@ -71,7 +71,7 @@ export default function Home() {
             onClick={() => setCurrentPage('settings')}>
             <div className="text-5xl mb-4">⚙️</div>
             <h2 className="text-2xl font-bold text-foreground mb-2">Configurações</h2>
-            <p className="text-muted-foreground mb-6">Ajuste o som, dificuldade e preferências</p>
+            <p className="text-muted-foreground mb-1 text-sm">Ajuste o som, dificuldade e preferências</p>
             <Button variant="outline" className="w-full gap-2">
               <Settings className="w-4 h-4" />
               Configurar

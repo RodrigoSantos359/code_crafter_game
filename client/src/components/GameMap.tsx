@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Level, RobotState } from '@/types/game';
-import { Zap, Droplets, AlertCircle } from 'lucide-react';
+import { Droplets, AlertCircle } from 'lucide-react';
 
 interface GameMapProps {
   level: Level;
@@ -8,7 +8,22 @@ interface GameMapProps {
 }
 
 export function GameMap({ level, robotState }: GameMapProps) {
-  const cellSize = 50;
+  const [maxCanvasSize, setMaxCanvasSize] = useState(360);
+
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (typeof window === 'undefined') return;
+      const availableWidth = Math.max(320, window.innerWidth - 160);
+      setMaxCanvasSize(Math.min(640, availableWidth));
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
+
+  const dynamicCellSize = Math.floor(maxCanvasSize / Math.max(level.gridWidth, level.gridHeight));
+  const cellSize = Math.max(32, Math.min(64, dynamicCellSize));
   const width = level.gridWidth * cellSize;
   const height = level.gridHeight * cellSize;
 
@@ -38,7 +53,7 @@ export function GameMap({ level, robotState }: GameMapProps) {
   };
 
   return (
-    <div className="flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg">
+    <div className="flex items-center justify-center p-4 bg-linear-to-br from-slate-50 to-slate-100 rounded-lg overflow-auto">
       <svg width={width} height={height} className="border-2 border-slate-300 rounded bg-white">
         {/* Renderizar células do mapa */}
         {level.map.map((cell, idx) => (
@@ -156,11 +171,7 @@ export function GameMap({ level, robotState }: GameMapProps) {
           <circle cx="5" cy="-1" r="1.5" fill="#10b981" />
 
           {/* Seta frontal grande indicando direção */}
-          <polygon
-            points="0,-16 -4,-8 4,-8"
-            fill="#fbbf24"
-            opacity="0.9"
-          />
+          
 
           {/* Rodas do robô */}
           <circle cx="-10" cy="12" r="3" fill="#1e40af" />
