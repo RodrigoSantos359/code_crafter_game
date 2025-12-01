@@ -7,13 +7,12 @@ O projeto já está **totalmente configurado** para produção no Vercel com as 
 ### 🔧 Configurações Técnicas
 - **Build otimizado** com code splitting (vendor, ui chunks)
 - **Minificação esbuild** para performance máxima
-- **Headers de segurança** (XSS, CSRF protection)
 - **SPA routing** configurado corretamente
-- **Serverless functions** prontas para APIs futuras
+- **Deploy estático** (sem funções serverless necessárias)
 
 ### 📦 Arquivos de Build
 - Cliente: `dist/public/` (HTML, CSS, JS otimizados)
-- Servidor: `dist/index.js` (bundled com esbuild)
+- Servidor Express: Apenas para desenvolvimento local
 
 ## 🌍 Variáveis de Ambiente
 
