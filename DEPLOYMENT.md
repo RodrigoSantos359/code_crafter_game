@@ -42,10 +42,10 @@ Configure no painel do Vercel (Project Settings > Environment Variables):
 
 ```bash
 # Build de produção
-npm run build
+pnpm run build
 
 # Preview local
-npm run preview
+pnpm run preview
 ```
 
 ## 📁 Estrutura Final
